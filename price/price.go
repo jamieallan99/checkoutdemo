@@ -34,7 +34,7 @@ func (p *Price) Mul(p2 Price) Price {
 // Output:
 //
 //	-12.345
-func(p *Price) String() string {
+func(p Price) String() string {
 	return p.amount.String()
 }
 
