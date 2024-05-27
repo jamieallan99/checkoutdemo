@@ -16,8 +16,25 @@ func TestSumItem(t *testing.T) {
 			Tally{"A", 1}, 
 			price.NewFromInt(10),
 		},
+		{
+			"Multibuy Count", 
+			Tally{"A", 3}, 
+			price.NewFromInt(25),
+		},
+		{
+			"Complex Multibuy Count", 
+			Tally{"A", 4}, 
+			price.NewFromInt(35),
+		},
+		
 	}
 	for _, tr := range testTable {
+		multibuys = map[string]Multibuy{
+			"A": Multibuy{
+				3,
+				price.NewFromInt(25),
+			},
+		}
 		p := price.NewFromInt(10)
 		prices = map[string]*price.Price{
 			"A": &p,
