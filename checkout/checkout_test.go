@@ -9,6 +9,7 @@ func TestSumItems(t *testing.T) {
 		expected int
 	}{
 		{"Basic Sum", []string{"A", "B", "C"}, 100},
+		{"Multibuy Sum", []string{"A", "A", "A"}, 130},
 	}
 	for _, tr := range testtable {
 		t.Run(tr.name, func(t *testing.T) {
