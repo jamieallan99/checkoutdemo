@@ -18,7 +18,9 @@ func TestSumItems(t *testing.T) {
 	}
 	for _, tr := range testtable {
 		t.Run(tr.name, func(t *testing.T) {
-			result := SumItems(tr.barcodes)
+			var transaction Transaction
+			transaction.Barcodes = tr.barcodes
+			result := transaction.SumItems()
 			if !tr.expected.Equal(result) {
 				t.Errorf("Incorrect Sum expected: %s, got: %s", tr.expected.String(), result.String())
 			}
