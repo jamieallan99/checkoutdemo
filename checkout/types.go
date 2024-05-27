@@ -1,23 +1,25 @@
 package checkout
 
+import "checkoutdemo/price"
+
 type Multibuy struct {
-	Count   int
-	Price   int
+	Count int64
+	Price price.Price
 }
 
 type Tally struct {
 	Barcode string
-	Count   int
+	Count   int64
 }
 
-func (t *Tally) SumItem() int {
-	var sum int
+func (t *Tally) SumItem() price.Price {
+	var sum price.Price
 	if m, ok := multibuys[t.Barcode]; ok {
-		multibuycost := (t.Count/m.Count) * m.Price
-		itemcost := (t.Count%m.Count) * prices[t.Barcode]
-		sum = multibuycost + itemcost
+		multibuycost := m.Price.Mul(price.NewFromInt(t.Count/m.Count))
+		itemcost := prices[t.Barcode].Mul(price.NewFromInt(t.Count%m.Count))
+		sum = multibuycost.Add(itemcost)
 	} else {
-		sum = t.Count * prices[t.Barcode]
+		sum = prices[t.Barcode].Mul(price.NewFromInt(t.Count)) 
 	}
 	return sum
 }

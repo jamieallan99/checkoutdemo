@@ -3,23 +3,23 @@ package checkout
 import (
 	"testing"
 
-	"github.com/shopspring/decimal"
+	"checkoutdemo/price"
 )
 
 func TestSumItems(t *testing.T) {
 	testtable := []struct {
 		name     string
 		barcodes []string
-		expected Price
+		expected price.Price
 	}{
-		{"Basic Sum", []string{"A", "B", "C"}, Price{decimal.NewFromInt(100)}},
-		{"Multibuy Sum", []string{"A", "A", "A"}, Price{decimal.NewFromInt(130)}},
+		{"Basic Sum", []string{"A", "B", "C"}, price.NewFromInt(100)},
+		{"Multibuy Sum", []string{"A", "A", "A"}, price.NewFromInt(130)},
 	}
 	for _, tr := range testtable {
 		t.Run(tr.name, func(t *testing.T) {
 			result := SumItems(tr.barcodes)
-			if !tr.expected.Amount.Equal(result.Amount) {
-				t.Errorf("Incorrect Sum expected: %d, got: %d", tr.expected, result)
+			if !tr.expected.Equal(result) {
+				t.Errorf("Incorrect Sum expected: %s, got: %s", tr.expected.String(), result.String())
 			}
 		})
 	}

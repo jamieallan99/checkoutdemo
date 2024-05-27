@@ -1,26 +1,31 @@
 package checkout
 
-var prices = map[string]int{
+import "checkoutdemo/price"
+
+var pmap = map[string]int64{
 	"A": 50,
 	"B": 30,
 	"C": 20,
 	"D": 15,
 }
 
+var prices = map[string]*price.Price{}
+
 var multibuys = map[string]Multibuy{
 	"A": {
 		Count:   3,
-		Price:   130,
+		Price:   price.NewFromInt(130),
 	},
 	"B": {
 		Count:   2,
-		Price:   45,
+		Price:   price.NewFromInt(45),
 	},
 }
 
-func SumItems(barcodes []string) int {
+func SumItems(barcodes []string) price.Price {
+	LoadPrices()
 	var itemcount = map[string]*Tally{}
-	var sum int
+	var sum price.Price
 
 	for _, b := range barcodes {
 		if _, ok := itemcount[b]; ok {
@@ -30,8 +35,14 @@ func SumItems(barcodes []string) int {
 		}
 	}
 	for _, t := range itemcount {
-		sum += t.SumItem()
+		sum = sum.Add(t.SumItem())
 	} 
 	return sum
 }
 
+func LoadPrices() {
+	for b, p:= range pmap {
+		pprice := price.NewFromInt(p)
+		prices[b] = &pprice
+	}
+}
