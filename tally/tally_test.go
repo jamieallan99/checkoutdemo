@@ -1,8 +1,9 @@
-package transaction
+package tally
 
 import (
-	"checkoutdemo/price"
 	"testing"
+	
+	"checkoutdemo/price"
 )
 
 func TestSumItem(t *testing.T) {
