@@ -1,12 +1,15 @@
 package transaction
 
 import (
+	"errors"
 	"fmt"
 
 	"checkoutdemo/cache"
 	"checkoutdemo/price"
 	"checkoutdemo/pricemap"
 )
+
+var ErrIncorrectFormat = errors.New("data not in correct format")
 
 type itemTally struct {
 	count        int
@@ -38,16 +41,16 @@ func New(id int64, pm pricemap.PriceMap) Transaction {
 	return Transaction{ID: id, barcodes: []pricemap.Barcode{}, itemTallies: make(tallyMap), RunningTotal: price.NewFromInt(0)}
 }
 
-func (t *Transaction) AddItem(barcode pricemap.Barcode) {
+func (t *Transaction) AddItem(barcode pricemap.Barcode) error {
 	data, err := cache.Get(fmt.Sprint(t.ID))
 	if err != nil {
-		fmt.Printf("Cache miss for transaction.ID: %d", t.ID)
-		return
+		fmt.Printf("Cache miss for transaction.ID: %d", t.ID) //In place of proper logging
+		return err
 	}
 	pm, ok := data.(pricemap.PriceMap)
 	if ! ok {
-		fmt.Printf("Data not in correct format, expected pricemap.PriceMap")
-		return
+		fmt.Printf("Data not in correct format, expected pricemap.PriceMap") //In place of proper logging
+		return fmt.Errorf("%w: expected pricemap.PriceMap", ErrIncorrectFormat)
 	}
 	t.barcodes = append(t.barcodes, barcode)
 	if _, ok := t.itemTallies[barcode]; ok {
@@ -57,6 +60,7 @@ func (t *Transaction) AddItem(barcode pricemap.Barcode) {
 	}
 	t.itemTallies[barcode].CalculateItemCost(pm[barcode])
 	t.RunningTotal = t.SumItems()
+	return nil
 }
 
 func (t *Transaction) SumItems() price.Price {
