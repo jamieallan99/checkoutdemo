@@ -34,15 +34,15 @@ var testPrices = pricemap.PriceMap{
 }
 
 var (
-	basicItemTally = map[string]*itemTally {
+	basicItemTally = tallyMap {
 		"A": {1, price.NewFromInt(50)},
 		"B": {1, price.NewFromInt(30)},
 		"C": {1, price.NewFromInt(20)},
 	}
-	multibuyItemTally = map[string]*itemTally {
+	multibuyItemTally = tallyMap {
 		"A": {3, price.NewFromInt(130)},
 	}
-	complexItemTally = map[string]*itemTally {
+	complexItemTally = tallyMap {
 		"A": {6, price.NewFromInt(260)},
 		"B": {4, price.NewFromInt(90)},
 		"C": {1, price.NewFromInt(20)},
@@ -54,7 +54,7 @@ func TestSumItems(t *testing.T) {
 	defer cache.KillStore()
 	testtable := []struct {
 		name     string
-		itemTallies map[string]*itemTally
+		itemTallies tallyMap
 		expected price.Price
 	}{
 		{"Basic Sum", basicItemTally, price.NewFromInt(100)},
@@ -78,12 +78,12 @@ func TestAddItem(t *testing.T) {
 	defer cache.KillStore()
 	testtable := []struct {
 		name     string
-		barcodes []string
+		barcodes []pricemap.Barcode
 		total    price.Price
 	}{
-		{"Basic Sum", []string{"A", "B", "C"}, price.NewFromInt(100)},
-		{"Multibuy Sum", []string{"A", "A", "A"}, price.NewFromInt(130)},
-		{"Complex Multibuy Sum", []string{"A", "A", "A", "B", "B", "B", "C", "A", "A", "B", "A"}, price.NewFromInt(370)},
+		{"Basic Sum", []pricemap.Barcode{"A", "B", "C"}, price.NewFromInt(100)},
+		{"Multibuy Sum", []pricemap.Barcode{"A", "A", "A"}, price.NewFromInt(130)},
+		{"Complex Multibuy Sum", []pricemap.Barcode{"A", "A", "A", "B", "B", "B", "C", "A", "A", "B", "A"}, price.NewFromInt(370)},
 	}
 	for _, tr := range testtable {
 		t.Run(tr.name, func(t *testing.T) {

@@ -2,10 +2,12 @@ package pricemap
 
 import "checkoutdemo/price"
 
-type PriceMap map[string]PriceData
+type PriceMap map[Barcode]PriceData
+
+type Barcode string
 
 type PriceData struct {
-	Barcode string
+	Barcode Barcode
 	Price price.Price
 	Multibuy *Multibuy
 }

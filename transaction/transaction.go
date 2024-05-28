@@ -13,6 +13,8 @@ type itemTally struct {
 	runningTotal price.Price
 }
 
+type tallyMap map[pricemap.Barcode]*itemTally
+
 func (i *itemTally) CalculateItemCost(pd pricemap.PriceData) {
 	if pd.Multibuy != nil {
 		mbtotal, indtotal := countItem(i.count, pd.Multibuy.Count)
@@ -26,17 +28,17 @@ func (i *itemTally) CalculateItemCost(pd pricemap.PriceData) {
 
 type Transaction struct {
 	ID           int64
-	barcodes     []string
-	itemTallies  map[string]*itemTally
+	barcodes     []pricemap.Barcode
+	itemTallies  tallyMap
 	RunningTotal price.Price
 }
 
 func New(id int64, pm pricemap.PriceMap) Transaction {
 	cache.Put(fmt.Sprint(id), pm)
-	return Transaction{ID: id, barcodes: []string{}, itemTallies: make(map[string]*itemTally), RunningTotal: price.NewFromInt(0)}
+	return Transaction{ID: id, barcodes: []pricemap.Barcode{}, itemTallies: make(tallyMap), RunningTotal: price.NewFromInt(0)}
 }
 
-func (t *Transaction) AddItem(barcode string) {
+func (t *Transaction) AddItem(barcode pricemap.Barcode) {
 	data, err := cache.Get(fmt.Sprint(t.ID))
 	if err != nil {
 		fmt.Printf("Cache miss for transaction.ID: %d", t.ID)
