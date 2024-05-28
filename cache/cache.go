@@ -8,6 +8,7 @@ import (
 const (
 	get action = "GET"
 	del action = "DEL"
+	put action = "PUT"
 	stop action = "STOP"
 )
 
@@ -67,6 +68,8 @@ func (k *cache) HandleIncoming() {
 			} else {
 				m.reply <- reply{value: nil, err: fmt.Errorf("%w: %s", ErrKeyNotFound, m.data.key)}
 			}
+		case put:
+			k.datamap[m.data.key] = m.data.value
 		}
 	}
 }
@@ -103,4 +106,15 @@ func Del(key string) error {
 	store.command <- m
 	r := <- m.reply
 	return r.err
+}
+
+func Put(key string, value any) {
+	m := message{
+		action: put,
+		data: data{
+			key: key,
+			value: value,
+		},
+	}
+	store.command <- m
 }
