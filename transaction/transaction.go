@@ -9,20 +9,24 @@ import (
 )
 
 type itemTally struct {
-	count int
+	count        int
 	runningTotal price.Price
 }
 
 func (i *itemTally) CalculateItemCost(pd pricemap.PriceData) {
-	mbtotal, indtotal := countItem(i.count, pd.Multibuy.Count)
-	mbprice := pd.Multibuy.Price.Mul(price.NewFromInt(int64(mbtotal)))
-	indprice := pd.Price.Mul(price.NewFromInt(int64(indtotal)))
-	i.runningTotal = mbprice.Add(indprice)
+	if pd.Multibuy != nil {
+		mbtotal, indtotal := countItem(i.count, pd.Multibuy.Count)
+		mbprice := pd.Multibuy.Price.Mul(price.NewFromInt(int64(mbtotal)))
+		indprice := pd.Price.Mul(price.NewFromInt(int64(indtotal)))
+		i.runningTotal = mbprice.Add(indprice)
+	} else {
+		i.runningTotal = pd.Price.Mul(price.NewFromInt(int64(i.count)))
+	}
 }
 
 type Transaction struct {
-	ID int64
-	Barcodes []string
+	ID           int64
+	Barcodes     []string
 	RunningTotal price.Price
 }
 
@@ -49,12 +53,12 @@ func (t *Transaction) SumItems() price.Price {
 	}
 	for _, t := range itemcounts {
 		sum = sum.Add(t.runningTotal)
-	} 
+	}
 	return sum
 }
 
 func countItem(itemCount, multibuyCount int) (totalMultibuys, totalIndividual int) {
-	totalMultibuys = itemCount/multibuyCount
-	totalIndividual = itemCount%multibuyCount
+	totalMultibuys = itemCount / multibuyCount
+	totalIndividual = itemCount % multibuyCount
 	return
 }
