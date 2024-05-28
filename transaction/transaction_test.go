@@ -1,6 +1,8 @@
 package transaction
 
 import (
+	"errors"
+	"fmt"
 	"testing"
 	"time"
 
@@ -80,16 +82,28 @@ func TestAddItem(t *testing.T) {
 		name     string
 		barcodes []pricemap.Barcode
 		total    price.Price
+		err error
 	}{
-		{"Basic Sum", []pricemap.Barcode{"A", "B", "C"}, price.NewFromInt(100)},
-		{"Multibuy Sum", []pricemap.Barcode{"A", "A", "A"}, price.NewFromInt(130)},
-		{"Complex Multibuy Sum", []pricemap.Barcode{"A", "A", "A", "B", "B", "B", "C", "A", "A", "B", "A"}, price.NewFromInt(370)},
+		{"Basic Sum", []pricemap.Barcode{"A", "B", "C"}, price.NewFromInt(100), nil},
+		{"Multibuy Sum", []pricemap.Barcode{"A", "A", "A"}, price.NewFromInt(130), nil},
+		{"Complex Multibuy Sum", []pricemap.Barcode{"A", "A", "A", "B", "B", "B", "C", "A", "A", "B", "A"}, price.NewFromInt(370), nil},
+		{"Cache miss erorr", []pricemap.Barcode{"A"}, price.NewFromInt(0), cache.ErrKeyNotFound},
+		{"Cache miss erorr", []pricemap.Barcode{"A"}, price.NewFromInt(0), ErrIncorrectFormat},
 	}
 	for _, tr := range testtable {
 		t.Run(tr.name, func(t *testing.T) {
-			var transaction = New(time.Now().Unix(), testPrices)
+			currentTime := time.Now().Unix()
+			var transaction = New(currentTime, testPrices)
 			for _, b := range tr.barcodes {
-				transaction.AddItem(b)
+				if errors.Is(cache.ErrKeyNotFound, tr.err) {
+					cache.Del(fmt.Sprint(currentTime))
+				} else if tr.err != nil {
+					cache.Put(fmt.Sprint(currentTime), "Bad data")
+				}
+				err := transaction.AddItem(b)
+				if (tr.err == nil) != (err == nil) {
+					t.Errorf("Incorrect error status, expected: %v, got: %v", tr.err, err)
+				}
 			}
 			if !tr.total.Equal(transaction.RunningTotal) {
 				t.Errorf("Incorrect Sum expected: %s, got: %s", tr.total.String(), transaction.RunningTotal.String())
