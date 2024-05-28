@@ -53,3 +53,29 @@ func TestAddItem(t *testing.T) {
 		})
 	}
 }
+
+func TestCountItem(t *testing.T) {
+	testTable := []struct {
+		name  string
+		itemcount int
+		multibuyCount int
+		totalMultibuy int
+		totalIndividual int
+	}{
+		{"Simple Count", 1,3,0,1,},
+		{"Multibuy Count", 3,3,1,0,},
+		{"Complex Multibuy Count", 4,3,1,1,},
+		
+	}
+	for _, tr := range testTable {
+		t.Run(tr.name, func(t *testing.T) {
+			totalMultibuy, totalIndividual := countItem(tr.itemcount, tr.multibuyCount)
+			if tr.totalMultibuy != totalMultibuy{
+				t.Errorf("Incorrect total of multibuys, expected: %d, got: %d", tr.totalMultibuy, totalMultibuy)
+			}
+			if tr.totalIndividual != totalIndividual{
+				t.Errorf("Incorrect total of individual items, expected: %d, got: %d", tr.totalIndividual, totalIndividual)
+			}
+		})
+	}
+}
