@@ -17,3 +17,7 @@
 * Started refactoring the Tally test to just count items and multibuys so
   only transaction cared about prices an realised tally could just be a
   function that does the counting rather than a separate pkg.
+* Realised that having a tally for each item that inluded a count and a
+  running total meant that when a new item is added the summation would
+  only need done with the new item. Therefore reinstated tally but in
+  transaction as it isn't a unique pkg rather a helper datatype.

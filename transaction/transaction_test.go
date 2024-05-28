@@ -6,6 +6,7 @@ import (
 
 	"checkoutdemo/cache"
 	"checkoutdemo/price"
+	"checkoutdemo/pricemap"
 )
 
 func TestSumItems(t *testing.T) {
@@ -75,6 +76,33 @@ func TestCountItem(t *testing.T) {
 			}
 			if tr.totalIndividual != totalIndividual{
 				t.Errorf("Incorrect total of individual items, expected: %d, got: %d", tr.totalIndividual, totalIndividual)
+			}
+		})
+	}
+}
+
+func TestCalculateItemCost(t *testing.T) {
+	testTable := []struct {
+		name string
+		priceData pricemap.PriceData
+		tally itemTally
+		expectedTotal price.Price 
+	} {
+		{
+			"Simple case",
+			pricemap.PriceData{
+				Barcode: "",
+				Price: price.NewFromInt(10),
+			},
+			itemTally{1,price.NewFromInt(0)},
+			price.NewFromInt(10),
+		},
+	}
+	for _, tr := range testTable {
+		t.Run(tr.name, func(t *testing.T) {
+			tr.tally.CalculateItemCost(tr.priceData)
+			if !tr.expectedTotal.Equal(tr.tally.runningTotal) {
+				t.Errorf("Incorrect total calculated, expected: %s, got: %s", tr.expectedTotal.String(), tr.tally.runningTotal.String())
 			}
 		})
 	}

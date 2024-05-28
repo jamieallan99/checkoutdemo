@@ -7,7 +7,7 @@ type PriceMap map[string]PriceData
 type PriceData struct {
 	Barcode string
 	Price price.Price
-	Multibuy Multibuy
+	Multibuy *Multibuy
 }
 
 type Multibuy struct {
