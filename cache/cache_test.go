@@ -44,3 +44,37 @@ func TestGet(t *testing.T) {
 		})
 	}
 }
+
+func TestDel(t *testing.T) {
+	defer KillStore()
+	store.datamap = map[string]any{
+		"123": "some data",
+	}
+
+	testtable := []struct {
+		name     string
+		key      string
+		err      error
+	}{
+		{
+			"Key exists",
+			"123",
+			nil,
+		},
+		{
+			"Key not found",
+			"1234",
+			ErrKeyNotFound,
+		},
+	}
+	for _, tr := range testtable {
+		t.Run(tr.name, func(t *testing.T) {
+			_, err := Del(tr.key)
+			if (tr.err == nil) != (err == nil) {
+				if !errors.Is(ErrKeyNotFound, err) {
+					t.Errorf("Incorrect error status expected: %v, got: %v", tr.err, err)
+				}
+			}
+		})
+	}
+}
