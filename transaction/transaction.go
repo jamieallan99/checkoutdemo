@@ -26,33 +26,41 @@ func (i *itemTally) CalculateItemCost(pd pricemap.PriceData) {
 
 type Transaction struct {
 	ID           int64
-	Barcodes     []string
+	barcodes     []string
+	itemTallies  map[string]*itemTally
 	RunningTotal price.Price
 }
 
-func New(id int64) Transaction {
-	cache.Put(fmt.Sprint(id), 123)
-	return Transaction{ID: id, Barcodes: []string{}, RunningTotal: price.NewFromInt(0)}
+func New(id int64, pm pricemap.PriceMap) Transaction {
+	cache.Put(fmt.Sprint(id), pm)
+	return Transaction{ID: id, barcodes: []string{}, itemTallies: make(map[string]*itemTally), RunningTotal: price.NewFromInt(0)}
 }
 
 func (t *Transaction) AddItem(barcode string) {
-	t.Barcodes = append(t.Barcodes, barcode)
+	data, err := cache.Get(fmt.Sprint(t.ID))
+	if err != nil {
+		fmt.Printf("Cache miss for transaction.ID: %d", t.ID)
+		return
+	}
+	pm, ok := data.(pricemap.PriceMap)
+	if ! ok {
+		fmt.Printf("Data not in correct format, expected pricemap.PriceMap")
+		return
+	}
+	t.barcodes = append(t.barcodes, barcode)
+	if _, ok := t.itemTallies[barcode]; ok {
+		t.itemTallies[barcode].count += 1
+	} else {
+		t.itemTallies[barcode] = &itemTally{1, price.NewFromInt(0)}
+	}
+	t.itemTallies[barcode].CalculateItemCost(pm[barcode])
 	t.RunningTotal = t.SumItems()
 }
 
 func (t *Transaction) SumItems() price.Price {
-	var itemcounts = map[string]*itemTally{}
 	var sum price.Price
-
-	for _, b := range t.Barcodes {
-		if _, ok := itemcounts[b]; ok {
-			itemcounts[b].count += 1
-		} else {
-			itemcounts[b] = &itemTally{1, price.NewFromInt(0)}
-		}
-	}
-	for _, t := range itemcounts {
-		sum = sum.Add(t.runningTotal)
+	for _, it := range t.itemTallies {
+		sum = sum.Add(it.runningTotal)
 	}
 	return sum
 }
