@@ -20,6 +20,11 @@ func init() {
 	go store.HandleIncoming()
 }
 
+func ManualInit() {
+	store = New()
+	go store.HandleIncoming()
+}
+
 type action string
 
 type message struct {

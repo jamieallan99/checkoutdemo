@@ -6,6 +6,7 @@ import (
 )
 
 func TestGet(t *testing.T) {
+	ManualInit()
 	defer KillStore()
 	store.datamap = map[string]any{
 		"123": "some data",
@@ -46,6 +47,7 @@ func TestGet(t *testing.T) {
 }
 
 func TestDel(t *testing.T) {
+	ManualInit()
 	defer KillStore()
 	store.datamap = map[string]any{
 		"123": "some data",
@@ -80,6 +82,7 @@ func TestDel(t *testing.T) {
 }
 
 func TestPut(t *testing.T) {
+	ManualInit()
 	defer KillStore()
 	store.datamap = map[string]any{
 		"123": "some data",

@@ -50,6 +50,7 @@ var (
 )
 
 func TestSumItems(t *testing.T) {
+	cache.ManualInit()
 	defer cache.KillStore()
 	testtable := []struct {
 		name     string
@@ -73,6 +74,8 @@ func TestSumItems(t *testing.T) {
 }
 
 func TestAddItem(t *testing.T) {
+	cache.ManualInit()
+	defer cache.KillStore()
 	testtable := []struct {
 		name     string
 		barcodes []string
