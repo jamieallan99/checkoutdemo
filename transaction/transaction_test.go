@@ -1,7 +1,6 @@
 package transaction
 
 import (
-	"fmt"
 	"testing"
 	"time"
 
@@ -47,8 +46,7 @@ func TestSumItems(t *testing.T) {
 	}
 	for _, tr := range testtable {
 		t.Run(tr.name, func(t *testing.T) {
-			var transaction = New(time.Now().Unix())
-			cache.Put(fmt.Sprint(transaction.ID), testPrices)
+			var transaction = New(time.Now().Unix(), testPrices)
 			transaction.barcodes = tr.barcodes
 			result := transaction.SumItems()
 			if !tr.expected.Equal(result) {
@@ -70,7 +68,7 @@ func TestAddItem(t *testing.T) {
 	}
 	for _, tr := range testtable {
 		t.Run(tr.name, func(t *testing.T) {
-			var transaction Transaction
+			var transaction = New(time.Now().Unix(), testPrices)
 			for _, b := range tr.barcodes {
 				transaction.AddItem(b)
 			}
