@@ -1,6 +1,7 @@
 package transaction
 
 import (
+	"fmt"
 	"testing"
 	"time"
 
@@ -8,6 +9,30 @@ import (
 	"checkoutdemo/price"
 	"checkoutdemo/pricemap"
 )
+
+var testPrices = pricemap.PriceMap{
+	"A": pricemap.PriceData{
+		Barcode: "A",
+		Price: price.NewFromInt(50),
+		Multibuy: &pricemap.Multibuy{
+			Count: 3,
+			Price: price.NewFromInt(130),
+		},
+	},
+	"B": pricemap.PriceData{
+		Barcode: "B",
+		Price: price.NewFromInt(30),
+		Multibuy: &pricemap.Multibuy{
+			Count: 2,
+			Price: price.NewFromInt(45),
+		},
+	},
+	"C": pricemap.PriceData{
+		Barcode: "C",
+		Price: price.NewFromInt(20),
+		Multibuy: nil,
+	},
+}
 
 func TestSumItems(t *testing.T) {
 	defer cache.KillStore()
@@ -23,7 +48,8 @@ func TestSumItems(t *testing.T) {
 	for _, tr := range testtable {
 		t.Run(tr.name, func(t *testing.T) {
 			var transaction = New(time.Now().Unix())
-			transaction.Barcodes = tr.barcodes
+			cache.Put(fmt.Sprint(transaction.ID), testPrices)
+			transaction.barcodes = tr.barcodes
 			result := transaction.SumItems()
 			if !tr.expected.Equal(result) {
 				t.Errorf("Incorrect Sum expected: %s, got: %s", tr.expected.String(), result.String())
@@ -36,11 +62,11 @@ func TestAddItem(t *testing.T) {
 	testtable := []struct {
 		name     string
 		barcodes []string
-		total price.Price
+		total    price.Price
 	}{
 		{"Basic Sum", []string{"A", "B", "C"}, price.NewFromInt(100)},
 		{"Multibuy Sum", []string{"A", "A", "A"}, price.NewFromInt(130)},
-		{"Complex Multibuy Sum", []string{"A", "A", "A","B","B","B","C","A","A","B","A"}, price.NewFromInt(370)},
+		{"Complex Multibuy Sum", []string{"A", "A", "A", "B", "B", "B", "C", "A", "A", "B", "A"}, price.NewFromInt(370)},
 	}
 	for _, tr := range testtable {
 		t.Run(tr.name, func(t *testing.T) {
@@ -57,24 +83,23 @@ func TestAddItem(t *testing.T) {
 
 func TestCountItem(t *testing.T) {
 	testTable := []struct {
-		name  string
-		itemcount int
-		multibuyCount int
-		totalMultibuy int
+		name            string
+		itemcount       int
+		multibuyCount   int
+		totalMultibuy   int
 		totalIndividual int
 	}{
-		{"Simple Count", 1,3,0,1,},
-		{"Multibuy Count", 3,3,1,0,},
-		{"Complex Multibuy Count", 4,3,1,1,},
-		
+		{"Simple Count", 1, 3, 0, 1},
+		{"Multibuy Count", 3, 3, 1, 0},
+		{"Complex Multibuy Count", 4, 3, 1, 1},
 	}
 	for _, tr := range testTable {
 		t.Run(tr.name, func(t *testing.T) {
 			totalMultibuy, totalIndividual := countItem(tr.itemcount, tr.multibuyCount)
-			if tr.totalMultibuy != totalMultibuy{
+			if tr.totalMultibuy != totalMultibuy {
 				t.Errorf("Incorrect total of multibuys, expected: %d, got: %d", tr.totalMultibuy, totalMultibuy)
 			}
-			if tr.totalIndividual != totalIndividual{
+			if tr.totalIndividual != totalIndividual {
 				t.Errorf("Incorrect total of individual items, expected: %d, got: %d", tr.totalIndividual, totalIndividual)
 			}
 		})
@@ -83,18 +108,18 @@ func TestCountItem(t *testing.T) {
 
 func TestCalculateItemCost(t *testing.T) {
 	testTable := []struct {
-		name string
-		priceData pricemap.PriceData
-		tally itemTally
-		expectedTotal price.Price 
-	} {
+		name          string
+		priceData     pricemap.PriceData
+		tally         itemTally
+		expectedTotal price.Price
+	}{
 		{
 			"Simple case",
 			pricemap.PriceData{
 				Barcode: "",
-				Price: price.NewFromInt(10),
+				Price:   price.NewFromInt(10),
 			},
-			itemTally{1,price.NewFromInt(0)},
+			itemTally{1, price.NewFromInt(0)},
 			price.NewFromInt(10),
 		},
 	}
