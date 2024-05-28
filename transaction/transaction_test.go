@@ -2,11 +2,14 @@ package transaction
 
 import (
 	"testing"
+	"time"
 
+	"checkoutdemo/cache"
 	"checkoutdemo/price"
 )
 
 func TestSumItems(t *testing.T) {
+	defer cache.KillStore()
 	testtable := []struct {
 		name     string
 		barcodes []string
@@ -18,7 +21,7 @@ func TestSumItems(t *testing.T) {
 	}
 	for _, tr := range testtable {
 		t.Run(tr.name, func(t *testing.T) {
-			var transaction Transaction
+			var transaction = New(time.Now().Unix())
 			transaction.Barcodes = tr.barcodes
 			result := transaction.SumItems()
 			if !tr.expected.Equal(result) {
