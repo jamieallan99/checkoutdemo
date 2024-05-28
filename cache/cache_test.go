@@ -39,7 +39,7 @@ func TestGet(t *testing.T) {
 				}
 			}
 			if value != tr.expected {
-				t.Errorf("Incorrect value expected: %v, got: %v", tr.expected, value)
+				t.Errorf("Incorrect value, expected: %v, got: %v", tr.expected, value)
 			}
 		})
 	}
@@ -52,9 +52,9 @@ func TestDel(t *testing.T) {
 	}
 
 	testtable := []struct {
-		name     string
-		key      string
-		err      error
+		name string
+		key  string
+		err  error
 	}{
 		{
 			"Key exists",
@@ -74,6 +74,47 @@ func TestDel(t *testing.T) {
 				if !errors.Is(ErrKeyNotFound, err) {
 					t.Errorf("Incorrect error status expected: %v, got: %v", tr.err, err)
 				}
+			}
+		})
+	}
+}
+
+func TestPut(t *testing.T) {
+	defer KillStore()
+	store.datamap = map[string]any{
+		"123": "some data",
+	}
+
+	testtable := []struct {
+		name     string
+		key      string
+		value    any
+		expected any
+	}{
+		{
+			"Key exists",
+			"123",
+			"new test data",
+			"new test data",
+		},
+		{
+			"Key does not exist",
+			"1234",
+			"also new test data",
+			"also new test data",
+		},
+	}
+	for _, tr := range testtable {
+		t.Run(tr.name, func(t *testing.T) {
+			Put(tr.key, tr.value)
+			value, err := Get(tr.key)
+			if err != nil {
+				if !errors.Is(ErrKeyNotFound, err) {
+					t.Errorf("Unexpcted error: %v", err)
+				}
+			}
+			if value != tr.expected {
+				t.Errorf("Incorrect value, expected: %v, got: %v", tr.expected, value)
 			}
 		})
 	}
