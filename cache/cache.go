@@ -7,6 +7,7 @@ import (
 
 const (
 	get action = "GET"
+	del action = "DEL"
 	stop action = "STOP"
 )
 
@@ -59,6 +60,13 @@ func (k *cache) HandleIncoming() {
 			} else {
 				m.reply <- reply{value: nil, err: fmt.Errorf("%w: %s", ErrKeyNotFound, m.data.key)}
 			}
+		case del:
+			if _, ok := k.datamap[m.data.key]; ok {
+				delete(k.datamap, m.data.key)
+				m.reply <- reply{value: nil, err: nil}
+			} else {
+				m.reply <- reply{value: nil, err: fmt.Errorf("%w: %s", ErrKeyNotFound, m.data.key)}
+			}
 		}
 	}
 }
@@ -82,4 +90,17 @@ func Get(key string) (any, error) {
 	store.command <- m
 	r := <- m.reply
 	return r.value, r.err
+}
+
+func Del(key string) error {
+	m := message{
+		action: del,
+		data: data{
+			key: key,
+		},
+		reply: make(chan reply),
+	}
+	store.command <- m
+	r := <- m.reply
+	return r.err
 }
