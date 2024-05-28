@@ -1,13 +1,34 @@
 package transaction
 
 import (
+	"fmt"
+
+	"checkoutdemo/cache"
 	"checkoutdemo/price"
-	"checkoutdemo/tally"
+	"checkoutdemo/pricemap"
 )
 
+type itemTally struct {
+	count int
+	runningTotal price.Price
+}
+
+func (i *itemTally) CalculateItemCost(pd pricemap.PriceData) {
+	mbtotal, indtotal := countItem(i.count, pd.Multibuy.Count)
+	mbprice := pd.Multibuy.Price.Mul(price.NewFromInt(int64(mbtotal)))
+	indprice := pd.Price.Mul(price.NewFromInt(int64(indtotal)))
+	i.runningTotal = mbprice.Add(indprice)
+}
+
 type Transaction struct {
+	ID int64
 	Barcodes []string
 	RunningTotal price.Price
+}
+
+func New(id int64) Transaction {
+	cache.Put(fmt.Sprint(id), 123)
+	return Transaction{ID: id, Barcodes: []string{}, RunningTotal: price.NewFromInt(0)}
 }
 
 func (t *Transaction) AddItem(barcode string) {
@@ -16,18 +37,24 @@ func (t *Transaction) AddItem(barcode string) {
 }
 
 func (t *Transaction) SumItems() price.Price {
-	var itemcount = map[string]*tally.Tally{}
+	var itemcounts = map[string]*itemTally{}
 	var sum price.Price
 
 	for _, b := range t.Barcodes {
-		if _, ok := itemcount[b]; ok {
-			itemcount[b].Count += 1
+		if _, ok := itemcounts[b]; ok {
+			itemcounts[b].count += 1
 		} else {
-			itemcount[b] = &tally.Tally{b, 1}
+			itemcounts[b] = &itemTally{1, price.NewFromInt(0)}
 		}
 	}
-	for _, t := range itemcount {
-		sum = sum.Add(t.SumItem())
+	for _, t := range itemcounts {
+		sum = sum.Add(t.runningTotal)
 	} 
 	return sum
+}
+
+func countItem(itemCount, multibuyCount int) (totalMultibuys, totalIndividual int) {
+	totalMultibuys = itemCount/multibuyCount
+	totalIndividual = itemCount%multibuyCount
+	return
 }

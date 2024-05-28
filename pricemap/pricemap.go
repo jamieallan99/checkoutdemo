@@ -11,6 +11,6 @@ type PriceData struct {
 }
 
 type Multibuy struct {
-	Count int64
+	Count int
 	Price price.Price
 }
